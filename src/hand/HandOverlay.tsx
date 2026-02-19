@@ -217,6 +217,14 @@ export function HandOverlay({ enabled, onUpdate }: Props) {
     setPhase('loading')
   }
 
+  function resetToDefaultCamera() {
+    setPendingDeviceId('')
+    window.localStorage.removeItem(CAM_DEVICE_ID_KEY)
+    setActiveDeviceId('')
+    setShowPicker(false)
+    setPhase('loading')
+  }
+
   function cleanup() {
     if (rafRef.current) {
       cancelAnimationFrame(rafRef.current)
@@ -232,6 +240,14 @@ export function HandOverlay({ enabled, onUpdate }: Props) {
 
     streamRef.current?.getTracks().forEach((t) => t.stop())
     streamRef.current = null
+  }
+
+  function openPicker() {
+    cleanup()
+    onUpdate(emptyUpdate)
+    setErr(null)
+    setShowPicker(true)
+    setPhase('picking')
   }
 
   function shouldEmit(next: HandUpdate) {
@@ -426,12 +442,25 @@ export function HandOverlay({ enabled, onUpdate }: Props) {
         <canvas className="handStageCanvas" ref={canvasRef} />
       </div>
 
+      {enabled && !showPicker && (
+        <button
+          className="handStageCamBtn"
+          type="button"
+          onClick={openPicker}
+          aria-label="Change camera"
+          title="Change camera"
+        >
+          Camera
+        </button>
+      )}
+
       {enabled && showPicker && (
         <div className="handStageUi">
           <div className="handStageUiCard">
             <div className="handStageUiTitle">카메라 선택</div>
             <div className="handStageUiSub">
-              NDI Virtual을 연결했다면 목록에서 <b>NDI</b> / <b>Virtual</b> 이름이 들어간 카메라를 선택해줘.
+              NDI 대신 <b>웹캠</b>을 쓰려면 FaceTime/USB/Webcam 같은 카메라를 선택하면 돼.
+              (라벨이 안 보이면 아래에서 권한 요청을 눌러줘)
             </div>
 
             <label className="handStageUiLabel">
@@ -457,6 +486,9 @@ export function HandOverlay({ enabled, onUpdate }: Props) {
                 onClick={requestPermissionAndRefresh}
               >
                 권한 요청 / 목록 새로고침
+              </button>
+              <button className="handStageUiBtn ghost" type="button" onClick={resetToDefaultCamera}>
+                기본값(웹캠)으로
               </button>
               <button className="handStageUiBtn" type="button" onClick={startWithPendingCamera}>
                 시작
