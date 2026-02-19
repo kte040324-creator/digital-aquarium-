@@ -7,6 +7,7 @@
 
 ```bash
 cd hand-gallery
+
 yarn install
 yarn dev
 ```

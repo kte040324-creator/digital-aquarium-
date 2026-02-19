@@ -76,6 +76,109 @@
   z-index: 1;
 }
 
+.handStageUi {
+  position: absolute;
+  inset: 0;
+  z-index: 2200; /* above everything */
+  display: grid;
+  place-items: center;
+  pointer-events: auto;
+  background: radial-gradient(
+      900px 520px at 30% 20%,
+      rgba(38, 216, 255, 0.08),
+      transparent 60%
+    ),
+    radial-gradient(
+      700px 420px at 75% 40%,
+      rgba(124, 92, 255, 0.08),
+      transparent 55%
+    ),
+    rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(8px);
+}
+
+.handStageUiCard {
+  width: min(520px, calc(100% - 32px));
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(0, 0, 0, 0.42);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55);
+  padding: 16px;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.handStageUiTitle {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin-bottom: 8px;
+}
+
+.handStageUiSub {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.35;
+  margin-bottom: 12px;
+}
+
+.handStageUiLabel {
+  display: grid;
+  gap: 6px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.78);
+  margin-bottom: 12px;
+}
+
+.handStageUiSelect {
+  width: 100%;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(0, 0, 0, 0.35);
+  color: rgba(255, 255, 255, 0.92);
+  padding: 0 10px;
+  outline: none;
+}
+
+.handStageUiSelect:focus {
+  border-color: rgba(38, 216, 255, 0.35);
+  box-shadow: 0 0 0 4px rgba(38, 216, 255, 0.1);
+}
+
+.handStageUiBtns {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.handStageUiBtn {
+  height: 36px;
+  padding: 0 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.92);
+  cursor: pointer;
+}
+
+.handStageUiBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.handStageUiBtn.ghost {
+  background: rgba(0, 0, 0, 0.16);
+}
+
+.handStageUiErr {
+  margin-top: 12px;
+  font-size: 12px;
+  color: rgba(255, 140, 140, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.25);
+}
+
 .handStageHud {
   position: absolute;
   left: 12px;

@@ -15,6 +15,8 @@ type Props = {
   onUpdate: (u: HandUpdate) => void
 }
 
+const CAM_DEVICE_ID_KEY = 'mica_camera_deviceId'
+
 const MODEL_URL =
   'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task'
 
@@ -34,12 +36,20 @@ export function HandOverlay({ enabled, onUpdate }: Props) {
   const smoothedCursorRef = useRef<{ x: number; y: number } | null>(null)
   const prevPinchedRef = useRef<boolean>(false)
 
-  const [, setErr] = useState<string | null>(null)
+  const [err, setErr] = useState<string | null>(null)
   const [phase, setPhase] = useState<
-    'idle' | 'loading' | 'ready' | 'error' | 'no-camera'
+    'idle' | 'picking' | 'loading' | 'ready' | 'error' | 'no-camera'
   >('idle')
 
   const mirrored = true
+
+  const savedDeviceId =
+    typeof window !== 'undefined' ? window.localStorage.getItem(CAM_DEVICE_ID_KEY) : null
+
+  const [showPicker, setShowPicker] = useState<boolean>(() => !savedDeviceId)
+  const [devices, setDevices] = useState<MediaDeviceInfo[]>([])
+  const [pendingDeviceId, setPendingDeviceId] = useState<string>(() => savedDeviceId ?? '')
+  const [activeDeviceId, setActiveDeviceId] = useState<string>(() => savedDeviceId ?? '')
 
   const emptyUpdate = useMemo<HandUpdate>(
     () => ({
@@ -88,11 +98,21 @@ export function HandOverlay({ enabled, onUpdate }: Props) {
 
     async function start() {
       try {
-        setPhase('loading')
+        setPhase(showPicker ? 'picking' : 'loading')
         setErr(null)
 
+        if (showPicker) {
+          // Don't auto-start the camera until the user picks one (first visit UX).
+          onUpdate(emptyUpdate)
+          return
+        }
+
+        const videoConstraints: MediaTrackConstraints = activeDeviceId
+          ? { deviceId: { exact: activeDeviceId } }
+          : { facingMode: 'user' }
+
         const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: 'user' },
+          video: videoConstraints,
           audio: false,
         })
         if (cancelled) return
@@ -125,6 +145,10 @@ export function HandOverlay({ enabled, onUpdate }: Props) {
         else setPhase('error')
         cleanup()
         onUpdate(emptyUpdate)
+
+        // If the chosen camera is missing / invalid (common when switching to NDI Virtual),
+        // fall back to the picker.
+        setShowPicker(true)
       }
     }
 
@@ -135,7 +159,63 @@ export function HandOverlay({ enabled, onUpdate }: Props) {
       cleanup()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [enabled, onUpdate, emptyUpdate])
+  }, [enabled, onUpdate, emptyUpdate, showPicker, activeDeviceId])
+
+  useEffect(() => {
+    if (!enabled) return
+    if (!showPicker) return
+
+    let cancelled = false
+
+    async function refreshDevices() {
+      try {
+        const list = await navigator.mediaDevices.enumerateDevices()
+        if (cancelled) return
+        setDevices(list.filter((d) => d.kind === 'videoinput'))
+      } catch (e) {
+        // ignore; some browsers require permission first
+      }
+    }
+
+    const onDeviceChange = () => refreshDevices()
+    refreshDevices()
+    navigator.mediaDevices.addEventListener?.('devicechange', onDeviceChange)
+    return () => {
+      cancelled = true
+      navigator.mediaDevices.removeEventListener?.('devicechange', onDeviceChange)
+    }
+  }, [enabled, showPicker])
+
+  async function requestPermissionAndRefresh() {
+    try {
+      // Asking for any camera once helps populate device labels in enumerateDevices().
+      const tmp = await navigator.mediaDevices.getUserMedia({ video: true, audio: false })
+      tmp.getTracks().forEach((t) => t.stop())
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e)
+      setErr(msg)
+      setPhase(msg.toLowerCase().includes('notallowed') ? 'no-camera' : 'error')
+      return
+    }
+
+    try {
+      const list = await navigator.mediaDevices.enumerateDevices()
+      setDevices(list.filter((d) => d.kind === 'videoinput'))
+    } catch {
+      // ignore
+    }
+  }
+
+  function startWithPendingCamera() {
+    if (pendingDeviceId) {
+      window.localStorage.setItem(CAM_DEVICE_ID_KEY, pendingDeviceId)
+    } else {
+      window.localStorage.removeItem(CAM_DEVICE_ID_KEY)
+    }
+    setActiveDeviceId(pendingDeviceId)
+    setShowPicker(false)
+    setPhase('loading')
+  }
 
   function cleanup() {
     if (rafRef.current) {
@@ -335,7 +415,6 @@ export function HandOverlay({ enabled, onUpdate }: Props) {
       <div
         className={mirrored ? 'handStageBg mirrored' : 'handStageBg'}
         ref={stageRef}
-        aria-hidden
       >
         <video className="handStageVideo" ref={videoRef} playsInline muted />
       </div>
@@ -346,6 +425,48 @@ export function HandOverlay({ enabled, onUpdate }: Props) {
       >
         <canvas className="handStageCanvas" ref={canvasRef} />
       </div>
+
+      {enabled && showPicker && (
+        <div className="handStageUi">
+          <div className="handStageUiCard">
+            <div className="handStageUiTitle">카메라 선택</div>
+            <div className="handStageUiSub">
+              NDI Virtual을 연결했다면 목록에서 <b>NDI</b> / <b>Virtual</b> 이름이 들어간 카메라를 선택해줘.
+            </div>
+
+            <label className="handStageUiLabel">
+              Camera
+              <select
+                className="handStageUiSelect"
+                value={pendingDeviceId}
+                onChange={(e) => setPendingDeviceId(e.target.value)}
+              >
+                <option value="">Default camera</option>
+                {devices.map((d, idx) => (
+                  <option key={d.deviceId} value={d.deviceId}>
+                    {d.label || `Camera ${idx + 1}`}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <div className="handStageUiBtns">
+              <button
+                className="handStageUiBtn ghost"
+                type="button"
+                onClick={requestPermissionAndRefresh}
+              >
+                권한 요청 / 목록 새로고침
+              </button>
+              <button className="handStageUiBtn" type="button" onClick={startWithPendingCamera}>
+                시작
+              </button>
+            </div>
+
+            {err && <div className="handStageUiErr">{err}</div>}
+          </div>
+        </div>
+      )}
     </>
   )
 }
