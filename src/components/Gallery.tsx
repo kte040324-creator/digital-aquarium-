@@ -23,6 +23,7 @@ type Props = {
 }
 
 const PAD = 16
+const BASE_URL = import.meta.env.BASE_URL
 // Fish size: reduce to 2/3 of the current size.
 // Fish size: slightly smaller overall.
 const SCALE = 0.5 * (2 / 3) * 0.85
@@ -411,9 +412,9 @@ export function Gallery({ hand }: Props) {
     <div className="galleryWrap">
       <div className="gallery" ref={containerRef}>
         <div className="tankBackGifs" aria-hidden>
-          <img className="tankBackGif b1" src="/Back_gif/1.gif" alt="" />
-          <img className="tankBackGif b2" src="/Back_gif/2.gif" alt="" />
-          <img className="tankBackGif b3" src="/Back_gif/2.gif" alt="" />
+          <img className="tankBackGif b1" src={`${BASE_URL}Back_gif/1.gif`} alt="" />
+          <img className="tankBackGif b2" src={`${BASE_URL}Back_gif/2.gif`} alt="" />
+          <img className="tankBackGif b3" src={`${BASE_URL}Back_gif/2.gif`} alt="" />
         </div>
         <RippleLayer
           above
@@ -480,10 +481,10 @@ export function Gallery({ hand }: Props) {
 
 function makeItems(): Item[] {
   const files = [
-    { id: 'F1', src: '/GIF/F1.gif' },
-    { id: 'F2', src: '/GIF/F2.gif' },
-    { id: 'F3', src: '/GIF/F3.gif' },
-    { id: 'F4', src: '/GIF/F4.gif' },
+    { id: 'F1', src: `${BASE_URL}GIF/F1.gif` },
+    { id: 'F2', src: `${BASE_URL}GIF/F2.gif` },
+    { id: 'F3', src: `${BASE_URL}GIF/F3.gif` },
+    { id: 'F4', src: `${BASE_URL}GIF/F4.gif` },
   ]
 
   // Double fish count: 2 of each GIF (total 8).
