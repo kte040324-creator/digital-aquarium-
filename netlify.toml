@@ -1,0 +1,6 @@
+[build]
+  command = "yarn build"
+  publish = "dist"
+
+# Camera access requires HTTPS in production; Netlify provides it automatically.
+

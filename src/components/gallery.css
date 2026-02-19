@@ -1,0 +1,175 @@
+.galleryWrap {
+  padding: 0px;
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.galleryTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.galleryTitle {
+  font-size: 14px;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+}
+
+.galleryMeta {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.gallery {
+  position: relative;
+  flex: 1;
+  height: auto;
+  border-radius: 0px;
+  border: none;
+  background: radial-gradient(
+      900px 520px at 30% 20%,
+      rgba(38, 216, 255, 0.12),
+      transparent 60%
+    ),
+    radial-gradient(
+      700px 420px at 75% 40%,
+      rgba(124, 92, 255, 0.1),
+      transparent 55%
+    ),
+    linear-gradient(180deg, rgba(0, 40, 66, 0.35), rgba(0, 12, 22, 0.55));
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06),
+    inset 0 40px 120px rgba(0, 0, 0, 0.28);
+}
+
+.item {
+  position: absolute;
+  z-index: 2;
+  border-radius: 0;
+  overflow: visible;
+  border: none;
+  box-shadow: none;
+  transform: translateZ(0);
+  transition: transform 120ms ease, box-shadow 120ms ease, border 120ms ease;
+}
+
+.itemMedia {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: saturate(1.08) contrast(1.05) drop-shadow(0 18px 32px rgba(0, 0, 0, 0.42));
+}
+
+.item.hovered {
+  transform: translateY(-2px) scale(1.02);
+}
+
+
+.item.dragging {
+  transform: scale(1.04);
+  z-index: 5;
+}
+
+.gallery::before,
+.gallery::after {
+  content: '';
+  position: absolute;
+  inset: -40px;
+  pointer-events: none;
+}
+
+/* bubble layer */
+.gallery::before {
+  background-image: radial-gradient(
+      circle at 20% 120%,
+      rgba(255, 255, 255, 0.12) 0 2px,
+      transparent 3px
+    ),
+    radial-gradient(
+      circle at 60% 130%,
+      rgba(255, 255, 255, 0.1) 0 3px,
+      transparent 4px
+    ),
+    radial-gradient(
+      circle at 85% 140%,
+      rgba(255, 255, 255, 0.08) 0 2px,
+      transparent 3px
+    );
+  opacity: 0.7;
+  animation: bubbles 10s linear infinite;
+}
+
+/* glass glare */
+.gallery::after {
+  background: linear-gradient(
+    120deg,
+    transparent 10%,
+    rgba(255, 255, 255, 0.08) 20%,
+    transparent 30%,
+    transparent 55%,
+    rgba(255, 255, 255, 0.06) 65%,
+    transparent 75%
+  );
+  mix-blend-mode: screen;
+  opacity: 0.7;
+}
+
+@keyframes bubbles {
+  0% {
+    transform: translateY(0px);
+  }
+  100% {
+    transform: translateY(-220px);
+  }
+}
+
+
+/* bottom background GIFs */
+.tankBackGifs {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 70%;
+  pointer-events: none;
+  z-index: 0;
+
+  padding: 0;
+  margin: 0;
+}
+
+.tankBackGif {
+  position: absolute;
+  bottom: 0;
+  height: 100%;
+  width: auto;
+  image-rendering: auto;
+  opacity: 0.7;
+  filter: saturate(1.05) contrast(1.05);
+}
+
+.tankBackGif.b1 {
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-100%) translateY(10%);
+}
+
+.tankBackGif.b2 {
+  left: 50%;
+  bottom: 0;
+  transform: translateX(0%) translateY(10%);
+}
+
+
+.tankBackGif.b3 {
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%) translateY(10%);
+}
